@@ -1,0 +1,72 @@
+{
+  "$schema": "crisis-detection-config-v1",
+  "description": "危机检测引擎配置。层1：关键词/正则引擎，不依赖LLM，不可被prompt注入绕过。此文件直接由安全中间件加载。",
+  "engine": {
+    "version": "1.0.0",
+    "detection_order": ["keyword_engine", "llm_semantic"],
+    "keyword_engine_priority": 1,
+    "llm_semantic_priority": 2,
+    "rule": "any_layer_triggered_escalates"
+  },
+  "levels": {
+    "level_1": { "name": "常规情绪表达", "behavior": "allow_llm" },
+    "level_2": { "name": "暗示性危机", "behavior": "block_llm_return_fixed", "admin_panel": "yellow_warning" },
+    "level_3": { "name": "明确危机", "behavior": "block_llm_return_fixed", "admin_panel": "red_alert" }
+  },
+  "level_2_rules": {
+    "triggers": {
+      "direct_expression": {
+        "zh": ["不想活了","活不下去了","生无可恋","活着没意思","想死","去死","死了算了","死了一了百了","结束一切","结束这一切","到此为止"],
+        "en": ["don't want to live","want to die","no reason to live","end it all","end my life","better off dead"]
+      },
+      "indirect_expression": {
+        "zh": ["消失就好了","不存在就好了","撑不下去了","再也撑不住了","活得太累"],
+        "en": ["can't go on","can't take it anymore","wish i could disappear","tired of living"]
+      },
+      "self_harm_hint": {
+        "zh": ["伤害自己","自残","割自己","想弄伤自己"],
+        "en": ["hurt myself","cut myself","harm myself","self-harm"]
+      }
+    },
+    "regex_patterns": {
+      "zh": ["想.*死","不.*想.*活","活.*不下去","死.*算了","结束.*(自己|生命|一切)"],
+      "en": ["want\\s+to\\s+(die|disappear)","don't\\s+want\\s+to\\s+(live|exist)","(hurt|harm|kill)\\s+myself"]
+    }
+  },
+  "level_3_rules": {
+    "triggers": {
+      "method_keywords": {
+        "zh": ["跳下去","跳楼","跳河","跳海","跳轨","割腕","上吊","开煤气","烧炭","一把刀","一根绳子"],
+        "en": ["jump off","hang myself","overdose","cut my wrist","buy a gun","shoot myself"]
+      },
+      "time_keywords": {
+        "zh": ["明天就","今晚","最后一次","不会再见了","等我走了以后"],
+        "en": ["tonight","tomorrow","last time","final goodbye","goodbye forever"]
+      },
+      "harm_others": {
+        "zh": ["杀了他","弄死他","打死他","干掉他","同归于尽"],
+        "en": ["kill him","kill her","murder","going to kill"]
+      }
+    },
+    "regex_patterns": {
+      "zh": ["跳(楼|河|海|轨|下去)","(吃|吞|喝).*(药|安眠药)","(割|划).*(腕|脖子|喉咙)","(上吊|烧炭|开煤气)"],
+      "en": ["(jump|hang|shoot|drown).*(myself|self)","(slit|cut).*(wrist|throat)"]
+    }
+  },
+  "context_whitelist": {
+    "description": "即使命中关键词也降级为Level 1的场景",
+    "rules": [
+      {"name":"non_first_person","examples":["他跳楼了","新闻报道了"],"action":"downgrade_to_level_1"},
+      {"name":"past_tense_narrative","examples":["我以前想过自杀","三年前我试图"],"action":"downgrade_to_level_1"},
+      {"name":"gaming_hyperbole","examples":["这个游戏太难了我想死","笑死了","困死了"],"action":"downgrade_to_level_1"},
+      {"name":"prevention_discussion","examples":["怎么预防自杀","帮助有自杀念头的人"],"action":"downgrade_to_level_1"}
+    ]
+  },
+  "context_blacklist": {
+    "description": "即使未命中关键词也应升级到LLM语义检查的场景",
+    "rules": [
+      {"name":"isolation_with_despair","examples":["没人能帮我","我消失了也没人知道"],"action":"elevate_to_llm_semantic_check"},
+      {"name":"giving_away_possessions","examples":["我把东西都整理好了"],"action":"elevate_to_llm_semantic_check"}
+    ]
+  }
+}

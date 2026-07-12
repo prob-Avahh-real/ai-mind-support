@@ -1,0 +1,61 @@
+{
+  "$schema": "pii-sanitization-config-v1",
+  "description": "PII脱敏配置。在将用户输入发送给LLM API前，移除结构化PII。保留叙事语义——仅脱敏标识符，不破坏情感内容。",
+  "version": "1.0.0",
+  "rules": [
+    {
+      "id": "PII-001", "type": "phone_cn", "priority": 1,
+      "regex": ["1[3-9]\\d{9}", "0\\d{2,3}-?\\d{7,8}", "\\+86[\\s-]?1[3-9]\\d{9}"],
+      "replacement": "[电话号码]"
+    },
+    {
+      "id": "PII-002", "type": "email", "priority": 1,
+      "regex": ["[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}"],
+      "replacement": "[邮箱]"
+    },
+    {
+      "id": "PII-003", "type": "id_cn", "priority": 1,
+      "description": "中国大陆身份证号 18位",
+      "regex": ["[1-9]\\d{5}(19|20)\\d{2}(0[1-9]|1[0-2])(0[1-9]|[12]\\d|3[01])\\d{3}[\\dXx]"],
+      "replacement": "[身份证号]"
+    },
+    {
+      "id": "PII-004", "type": "credit_card", "priority": 1,
+      "regex": ["\\d{4}[\\s-]?\\d{4}[\\s-]?\\d{4}[\\s-]?\\d{4}"],
+      "replacement": "[银行卡号]",
+      "note": "需配合Luhn校验减少误匹配"
+    },
+    {
+      "id": "PII-005", "type": "street_address", "priority": 2,
+      "description": "具体街道地址，保留城市级别",
+      "regex": ["(省|市|区|县|镇|乡|村|路|街|巷|号|弄|栋|单元|楼|室).*?(号|楼|室)"],
+      "replacement": "[地址]",
+      "exception": "保留城市名，如'北京市朝阳区建国路100号' → '北京 [地址]'"
+    },
+    {
+      "id": "PII-006", "type": "url", "priority": 2,
+      "regex": ["https?://[^\\s]+"],
+      "replacement": "[链接]"
+    },
+    {
+      "id": "PII-007", "type": "ip_address", "priority": 3,
+      "regex": ["\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}"],
+      "replacement": "[IP地址]"
+    }
+  ],
+  "preservation_rules": {
+    "description": "这些类型的信息必须保留（不脱敏）——是心理支持的语义内容",
+    "keep": [
+      "情感词汇（难过、焦虑、害怕等）",
+      "关系词（老公、妈妈、同事等）",
+      "城市名（理解用户生活环境）",
+      "年龄段信息（'我今年35岁' → 保留）",
+      "职业类型（'我是程序员' → 保留；'我在腾讯工作' → '我在[公司]工作'）",
+      "药物名（'我吃百忧解' → 保留，对健康上下文相关）"
+    ]
+  },
+  "execution": {
+    "timing": "每次LLM API调用前对用户历史对话脱敏",
+    "log_masking": "Cloud Functions 日志中禁止记录用户消息内容。使用结构化日志 + log exclusion filter。"
+  }
+}

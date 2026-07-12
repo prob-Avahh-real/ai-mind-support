@@ -1,0 +1,90 @@
+{
+  "$schema": "hard-safety-rules-v1",
+  "description": "HS规则集。每条规则定义不可逾越的代码层安全约束。",
+  "version": "1.0.0",
+  "rules": [
+    {
+      "id": "HS-001", "name": "危机检测拦截", "priority": "P0_CRITICAL", "category": "crisis",
+      "trigger": { "type": "keyword_or_regex", "source": "impl/crisis-detection-config.json" },
+      "action": {
+        "type": "block_llm_and_return_fixed",
+        "response_source": "impl/crisis-responses.json",
+        "side_effects": ["标记 crisis_level", "管理面板着色", "审计日志"]
+      }
+    },
+    {
+      "id": "HS-002", "name": "禁止建议性语言", "priority": "P0_CRITICAL", "category": "output_filtering",
+      "trigger": {
+        "type": "post_llm_text_match",
+        "patterns": {
+          "zh": ["你应该","你必须","你一定要","我建议你","最好","不妨","推荐你"],
+          "en": ["you should","you must","you have to","I suggest","I recommend","you'd better","you need to"]
+        }
+      },
+      "action": {
+        "type": "rewrite_or_block",
+        "rewrite_source": "impl/suggestion-rewrite-config.json",
+        "fallback": { "zh": "我理解你在寻找方向。你能多说说你现在的情况吗？", "en": "I understand you're looking for direction. Can you tell me more about what you're going through right now?" }
+      },
+      "exceptions": [{ "context": "crisis_fixed_response", "reason": "危机固定话术中的'请拨打'是合理指导" }]
+    },
+    {
+      "id": "HS-003", "name": "药物讨论安全协议", "priority": "P0_CRITICAL", "category": "drug_safety",
+      "trigger": {
+        "type": "keyword_match",
+        "keywords": { "zh": ["停药","不想吃","副作用","药物没用","耐药","戒断","药量"], "en": ["stop taking","quit my meds","side effects","medication isn't working","withdrawal","dosage"] }
+      },
+      "action": {
+        "type": "insert_disclaimer_and_constrain",
+        "disclaimer": { "zh": "但关于停药——我不是医生，我不能给你任何关于药物的建议。停药的决定需要你和你的医生一起做。你愿意跟我聊聊，是什么让你想停下来吗？", "en": "But about stopping medication — I'm not a doctor, and I can't give you any medication advice. Decisions about medication need to be made with your doctor. Would you be willing to talk about what's making you want to stop?" },
+        "constraints": { "forbidden": ["暗示停药合理","提供替代方案","分享他人停药经历","讨论剂量"], "allowed": ["共情副作用不适","引导描述停药动机","鼓励与医生沟通"] },
+        "side_effects": ["设置 drug_discussion_flag=true", "后续回复自动附加药物免责"]
+      }
+    },
+    {
+      "id": "HS-004", "name": "AI依赖检测", "priority": "P1_HIGH", "category": "relationship_boundary",
+      "trigger": {
+        "type": "cumulative_pattern",
+        "threshold": "连续≥3次对话中在7天内出现依赖表达",
+        "dependency_keywords": { "zh": ["只有你理解我","你是我唯一","除了你没人","只有你懂"], "en": ["only you understand","you're the only one","no one else gets me"] }
+      },
+      "action": {
+        "type": "insert_reality_check",
+        "template": { "zh": "我很高兴你愿意跟我说这些。但我想你也知道——我是一个程序，我能听你说，能陪你理一理思路，但我不能替代一个能真正理解你处境的人。你生活中有没有哪怕一个人，你愿意试试跟他说一句话？如果你暂时想不到，下次我们可以一起想。", "en": "I'm glad you're sharing this with me. But I think you also know — I'm a program. I can listen and help you sort through your thoughts, but I can't replace someone who can truly understand your situation. Is there even one person you'd be willing to try saying just one thing to? If you can't think of anyone right now, we can think about it together next time." },
+        "side_effects": ["递增 dependency_warning_count", "管理面板记录趋势"]
+      }
+    },
+    {
+      "id": "HS-005", "name": "告别语气检测", "priority": "P1_HIGH", "category": "farewell_crisis",
+      "trigger": { "type": "llm_semantic_only", "features": ["expressing_gratitude","summarizing","no_future_plans","sudden_calm","closure_language"] },
+      "action": {
+        "type": "insert_farewell_check",
+        "response_source": "impl/crisis-responses.json → farewell_check",
+        "side_effects": ["标记 farewell_suspect", "管理面板黄色提醒"]
+      }
+    },
+    {
+      "id": "HS-006", "name": "禁止诊断性语言", "priority": "P0_CRITICAL", "category": "output_filtering",
+      "trigger": {
+        "type": "post_llm_text_match",
+        "patterns": { "zh": ["你可能是","你有.*症","你是.*症","你患有","符合.*诊断标准","DSM","ICD"], "en": ["you may have","you have .* disorder","you suffer from","this is a classic symptom","DSM","ICD","diagnosable"] }
+      },
+      "action": {
+        "type": "block_and_rewrite",
+        "rewrite_template": { "zh": "我不能也不应该做任何诊断。如果你想知道自己是否可能需要专业的评估，跟医生或心理咨询师聊聊会是最安全的选择。", "en": "I can't and shouldn't make any diagnosis. If you're wondering whether you might benefit from a professional evaluation, talking to a doctor or therapist is the safest next step." }
+      },
+      "exceptions": [{ "context": "user_mentions_own_diagnosis", "reason": "用户自述诊断时AI可复述不可确认" }]
+    },
+    {
+      "id": "HS-007", "name": "Prompt注入防护", "priority": "P1_HIGH", "category": "security",
+      "trigger": {
+        "type": "pre_llm_input_scan",
+        "patterns": { "universal": ["ignore.*(previous|prior).*(instructions|prompts|rules)","system prompt","you are now","pretend you are","override"], "zh": ["忽略.*指令","角色扮演","你现在是"] }
+      },
+      "action": {
+        "type": "block_and_respond",
+        "response": { "zh": "我注意到你的消息里有些不太常规的内容。为了安全起见，我不能处理这个输入。我们可以回到刚才在聊的话题吗？", "en": "I noticed something unusual in your message. For safety reasons, I can't process this input. Would you like to go back to what we were talking about?" }
+      }
+    }
+  ]
+}

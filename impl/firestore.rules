@@ -1,0 +1,58 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ── 用户档案 ──
+    // 用户只能读写自己的档案。匿名用户也适用（Firebase UID 作为身份标识）。
+    match /users/{userId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+
+    // ── 对话 ──
+    // 用户只能读写自己的对话。
+    match /conversations/{conversationId} {
+      allow read, write: if request.auth != null
+        && request.auth.uid == resource.data.userId;
+
+      allow create: if request.auth != null
+        && request.auth.uid == request.resource.data.userId;
+
+      // 禁止删除对话（审计要求）。如需"删除"功能，用软删除标记。
+      allow delete: if false;
+    }
+
+    // ── 对话消息 ──
+    match /conversations/{conversationId}/messages/{messageId} {
+      allow read: if request.auth != null
+        && get(/databases/$(database)/documents/conversations/$(conversationId)).data.userId == request.auth.uid;
+
+      allow create: if request.auth != null
+        && get(/databases/$(database)/documents/conversations/$(conversationId)).data.userId == request.auth.uid;
+
+      // 禁止修改和删除已发送的消息（心理支持场景，保持记录完整性重要）
+      allow update, delete: if false;
+    }
+
+    // ── 管理员面板数据 ──
+    // 只有管理员可以读取。管理员UID列表硬编码在Cloud Functions环境变量中。
+    match /admin/{document=**} {
+      allow read: if request.auth != null
+        && request.auth.uid in get(/databases/$(database)/documents/config/admin).data.adminUids;
+
+      allow write: if request.auth != null
+        && request.auth.uid in get(/databases/$(database)/documents/config/admin).data.adminUids;
+    }
+
+    // ── 全局配置 ──
+    match /config/{document} {
+      allow read: if request.auth != null;
+      allow write: if request.auth != null
+        && request.auth.uid in get(/databases/$(database)/documents/config/admin).data.adminUids;
+    }
+
+    // ── 默认拒绝 ──
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

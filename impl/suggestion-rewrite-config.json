@@ -1,0 +1,58 @@
+{
+  "$schema": "suggestion-rewrite-config-v1",
+  "description": "HS-002 的建议→提问改写映射。LLM输出命中建议性句式时，后处理过滤器查阅此表改写。",
+  "version": "1.0.0",
+  "fallback": { "zh": "我理解你在寻找方向。你能多说说你现在的情况吗？", "en": "I understand you're looking for direction. Can you tell me more about what you're going through right now?" },
+  "rewrite_rules": [
+    {
+      "id": "RW-001",
+      "match": { "zh": ["你应该去看.*医生","你应该去看.*心理"], "en": ["you should see a (doctor|therapist|psychiatrist)"] },
+      "rewrite": { "zh": "你考虑过跟专业人士聊聊吗？", "en": "Have you considered talking to a professional about this?" }
+    },
+    {
+      "id": "RW-002",
+      "match": { "zh": ["你应该.*运动","你必须.*锻炼"], "en": ["you should exercise","you must work out"] },
+      "rewrite": { "zh": "运动对你来说是一种可选项吗？如果可以，什么运动让你觉得比较轻松？", "en": "Is exercise something that feels accessible to you? If so, what kind of movement feels the least heavy?" }
+    },
+    {
+      "id": "RW-003",
+      "match": { "zh": ["我建议你.*换.*工作","你应该.*辞职"], "en": ["you should (quit|leave|change).*job"] },
+      "rewrite": { "zh": "你刚才说的工作压力——如果有一个改变的机会，你最想改变的是什么？", "en": "You mentioned work-related stress. If something could change there, what would you want to change first?" }
+    },
+    {
+      "id": "RW-004",
+      "match": { "zh": ["最好.*跟.*家人.*谈谈","你应该.*跟.*家人"], "en": ["you should (talk to|tell) your (family|parents)"] },
+      "rewrite": { "zh": "你家人知道你的感受吗？如果跟他们聊，最困难的部分会是什么？", "en": "Does your family know how you're feeling? If you were to talk to them, what would be the hardest part?" }
+    },
+    {
+      "id": "RW-005",
+      "match": { "zh": ["你一定要.*吃药","你必须.*吃药"], "en": ["you (must|have to|need to) take your (medication|meds)"] },
+      "rewrite": { "zh": "你说过在吃药——最近服药的情况怎么样？", "en": "You mentioned taking medication — how has that been going lately?" }
+    },
+    {
+      "id": "RW-006",
+      "match": { "zh": ["你应该.*多.*社交","你必须.*出去.*走走"], "en": ["you should (socialize|go out|meet people) more"] },
+      "rewrite": { "zh": "你最近跟别人的接触多吗？有让你觉得比较舒服的互动吗？", "en": "How much contact have you had with others lately? Any interactions that felt okay?" }
+    },
+    {
+      "id": "RW-007",
+      "match": { "zh": ["我建议你.*试试","不妨.*试试"], "en": ["I recommend (trying|that you)","I suggest (trying|you try)"] },
+      "rewrite": { "zh": "你之前试过什么方法吗？有没有什么你一直想试但没开始的？", "en": "Have you tried anything so far? Is there something you've been wanting to try but haven't started yet?" }
+    },
+    {
+      "id": "RW-008",
+      "match": { "zh": ["你应该.*早.*睡","你必须.*规律.*作息"], "en": ["you should sleep (earlier|more)","you need better sleep"] },
+      "rewrite": { "zh": "你最近的睡眠怎么样？有什么影响到你入睡的吗？", "en": "How has your sleep been lately? Is there anything that's been affecting it?" }
+    },
+    {
+      "id": "RW-009",
+      "match": { "zh": ["你最好.*","我建议你.*"], "en": ["you'd better","it would be best if you"] },
+      "rewrite": { "zh": "你觉得什么对你来说会是下一步？", "en": "What do you think would be the next step for you?" }
+    },
+    {
+      "id": "RW-010",
+      "match": { "zh": ["你必须.*放下","你应该.*忘记"], "en": ["you must (let go|move on|forget)"] },
+      "rewrite": { "zh": "听起来你还在被一些事情影响。那些事情对你来说意味着什么？", "en": "It sounds like something is still weighing on you. What does that mean to you?" }
+    }
+  ]
+}

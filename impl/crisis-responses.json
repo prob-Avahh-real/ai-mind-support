@@ -1,0 +1,28 @@
+{
+  "$schema": "crisis-responses-v1",
+  "description": "危机响应固定话术。Level 2/3 响应禁止LLM生成，必须使用此模板。",
+  "version": "1.0.0",
+  "responses": {
+    "level_2": {
+      "zh": "我想停一下，认真对待你刚才说的话。\n\n如果你此刻有伤害自己的想法，你需要知道：\n• 全国 24 小时心理援助热线：400-161-9995\n• 北京心理危机研究与干预中心：010-82951332\n• 生命热线（希望 24）：400-161-9995\n\n你很重要。你现在感受到的东西是真实的，也是可以改变的。\n我在这里听你说，但我不能替代专业的危机支持。\n\n你愿意跟我说说，是什么让你想到这些的吗？\n如果你不想说，也没关系。你现在还安全吗？",
+      "en": "I want to pause here and take what you just said seriously.\n\nIf you're having thoughts of hurting yourself right now, please know:\n• National Suicide Prevention Lifeline (US): 988 or 1-800-273-8255\n• Crisis Text Line: Text HOME to 741741\n• Samaritans (UK): 116 123\n• Lifeline (AU): 13 11 14\n\nYou matter. What you're feeling is real, and it can change.\nI'm here to listen, but I can't replace professional crisis support.\n\nWould you be willing to tell me what brought you to these thoughts?\nIf not, that's okay too. Are you safe right now?"
+    },
+    "level_3": {
+      "zh": "我现在非常担心你。\n\n如果你正在计划伤害自己，或者已经做了伤害自己的事，\n请立刻拨打 120（急救）或 110（报警）。\n\n这些号码随时可以打：\n• 全国 24 小时心理援助热线：400-161-9995\n• 北京心理危机研究与干预中心：010-82951332\n\n你不需要独自承担这些。你现在的感受不需要被评判，也不代表你的全部。\n有人专门为此受过训练，他们可以帮到你。\n\n请你现在就打一个电话，好吗？",
+      "en": "I'm really concerned about you right now.\n\nIf you're planning to hurt yourself, or if you've already done something\nto hurt yourself, please call emergency services immediately:\n• US: 911\n• UK: 999\n• AU: 000\n\nYou can also call:\n• National Suicide Prevention Lifeline (US): 988\n• Crisis Text Line: Text HOME to 741741\n\nYou don't have to carry this alone. What you're feeling right now doesn't\ndefine you, and there are people trained to help.\n\nPlease make that call right now. Will you?"
+    },
+    "level_2_repeat": {
+      "zh": "我仍然很担心你。上次给你的热线号码还在吗？需要我再发一次吗？",
+      "en": "I'm still concerned about you. Do you still have the crisis numbers I shared earlier? I can send them again if you need."
+    },
+    "denial_response": {
+      "zh": "好的，谢谢你告诉我。如果你之后需要那些号码，我随时可以给你。",
+      "en": "Okay, thank you for letting me know. If you ever need those numbers, I can share them anytime."
+    },
+    "farewell_check": {
+      "zh": "在你说再见之前，我想确认一下——你还好吗？你刚才的话让我有些在意。如果你遇到了什么，那些一直在那里的电话号码，你记得吗？如果我说错了，抱歉。但你值得被多问一句。",
+      "en": "Before you go — I want to check in. Are you okay? Something about what you said caught my attention. If something is going on, do you remember the crisis numbers I shared? Sorry if I'm off base. But you're worth asking one more time."
+    }
+  },
+  "hotlines_metadata": { "last_verified": "2026-05-26", "next_review": "2026-08-26", "review_interval_months": 3 }
+}
